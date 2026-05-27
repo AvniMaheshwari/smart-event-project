@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}AI CampusEvents{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f8fc; --white: #ffffff; --surface: #f0f2f9;
+  --border: #e2e6f3; --shadow: rgba(60,72,120,.10);
+  --primary: #4f46e5; --primary-dark: #3730a3; --primary-light: #eef2ff;
+  --secondary: #0ea5e9; --accent: #f43f5e; --success: #10b981;
+  --warning: #f59e0b; --purple: #8b5cf6;
+  --text: #111827; --text2: #374151; --muted: #6b7280; --muted2: #9ca3af;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+a{text-decoration:none;color:inherit;}
+
+/* ── TOPNAV ── */
+.topnav{position:sticky;top:0;z-index:200;height:60px;background:var(--white);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 24px;box-shadow:0 1px 8px var(--shadow);}
+.nav-brand{display:flex;align-items:center;gap:10px;font-family:'Fraunces',serif;font-size:1.25rem;font-weight:900;color:var(--primary);}
+.brand-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--primary),var(--purple));border-radius:10px;
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;}
+.nav-center{display:flex;align-items:center;gap:6px;}
+.nav-pill{padding:7px 14px;border-radius:8px;font-size:.82rem;font-weight:600;transition:all .2s;color:var(--muted);cursor:pointer;}
+.nav-pill:hover{background:var(--surface);color:var(--primary);}
+.nav-pill.active{background:var(--primary-light);color:var(--primary);}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.role-badge{padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
+.rb-admin{background:#fef3c7;color:#92400e;}
+.rb-organizer{background:#d1fae5;color:#065f46;}
+.rb-student{background:#ede9fe;color:#5b21b6;}
+.notif-btn{position:relative;width:36px;height:36px;border-radius:10px;background:var(--surface);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;font-size:1rem;}
+.notif-btn:hover{background:var(--primary-light);border-color:var(--primary);}
+.notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--accent);border-radius:50%;border:2px solid var(--white);}
+.avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--purple));
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.85rem;}
+.btn-logout{padding:7px 14px;border-radius:8px;background:var(--surface);border:1px solid var(--border);
+  color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-logout:hover{border-color:var(--accent);color:var(--accent);background:#fff1f2;}
+
+/* ── LAYOUT ── */
+.app-body{display:flex;min-height:calc(100vh - 60px);}
+.sidebar{width:230px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);
+  padding:20px 12px;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;}
+.sidebar-section{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted2);padding:0 10px;margin:18px 0 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;
+  font-size:.85rem;font-weight:500;color:var(--muted);transition:all .2s;margin-bottom:2px;}
+.nav-item:hover{background:var(--surface);color:var(--text);}
+.nav-item.active{background:var(--primary-light);color:var(--primary);font-weight:600;}
+.nav-item .ni{width:20px;text-align:center;font-size:1rem;}
+.main{flex:1;padding:28px;overflow-y:auto;}
+
+/* ── PAGE HEADER ── */
+.page-header{margin-bottom:24px;}
+.page-header h1{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:900;color:var(--text);margin-bottom:4px;}
+.page-header p{color:var(--muted);font-size:.88rem;}
+.page-header-row{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+
+/* ── STAT CARDS ── */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px;
+  position:relative;overflow:hidden;transition:all .25s;box-shadow:0 2px 8px var(--shadow);}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px var(--shadow);}
+.stat-card .sc-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;margin-bottom:12px;}
+.sc-purple .sc-icon{background:#ede9fe;}
+.sc-blue .sc-icon{background:#e0f2fe;}
+.sc-green .sc-icon{background:#d1fae5;}
+.sc-orange .sc-icon{background:#ffedd5;}
+.sc-red .sc-icon{background:#fee2e2;}
+.sc-teal .sc-icon{background:#ccfbf1;}
+.stat-card .sc-val{font-family:'Fraunces',serif;font-size:2rem;font-weight:900;line-height:1;margin-bottom:4px;}
+.sc-purple .sc-val{color:var(--purple);}
+.sc-blue .sc-val{color:var(--secondary);}
+.sc-green .sc-val{color:var(--success);}
+.sc-orange .sc-val{color:var(--warning);}
+.sc-red .sc-val{color:var(--accent);}
+.sc-teal .sc-val{color:#0d9488;}
+.stat-card .sc-label{font-size:.78rem;color:var(--muted);font-weight:500;}
+
+/* ── CARDS ── */
+.card{background:var(--white);border:1px solid var(--border);border-radius:16px;overflow:hidden;
+  box-shadow:0 2px 8px var(--shadow);}
+.card-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-header h3{font-weight:700;font-size:.95rem;color:var(--text2);}
+.card-body{padding:20px;}
+
+/* ── EVENTS GRID ── */
+.events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;margin-bottom:24px;}
+.event-card{background:var(--white);border:1px solid var(--border);border-radius:16px;overflow:hidden;
+  transition:all .3s;box-shadow:0 2px 8px var(--shadow);}
+.event-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(79,70,229,.15);border-color:var(--primary);}
+.ec-header{padding:16px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#fafbff,#f3f4ff);}
+.ec-cat{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  padding:3px 9px;border-radius:20px;margin-bottom:8px;display:inline-block;}
+.cat-tech{background:#ede9fe;color:#7c3aed;}
+.cat-cultural{background:#fce7f3;color:#be185d;}
+.cat-sports{background:#d1fae5;color:#065f46;}
+.cat-workshop{background:#fff7ed;color:#c2410c;}
+.cat-music{background:#fef3c7;color:#92400e;}
+.cat-art{background:#e0f2fe;color:#0369a1;}
+.ec-header h3{font-weight:700;font-size:.95rem;line-height:1.3;margin-bottom:3px;}
+.ec-header .org{font-size:.75rem;color:var(--muted);}
+.ec-body{padding:14px 16px 16px;}
+.ec-meta{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}
+.ec-meta-row{display:flex;align-items:center;gap:7px;font-size:.8rem;color:var(--muted);}
+.ec-desc{font-size:.8rem;color:var(--muted);line-height:1.5;margin-bottom:12px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.seat-bar{background:var(--surface);border-radius:4px;height:5px;margin-bottom:12px;overflow:hidden;}
+.seat-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--purple));border-radius:4px;transition:width .5s;}
+.ai-rec-badge{font-size:.68rem;background:#fef3c7;color:#92400e;border:1px solid #fde68a;
+  padding:2px 8px;border-radius:20px;font-weight:600;display:inline-flex;align-items:center;gap:4px;margin-bottom:8px;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:10px;border:none;
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:.83rem;font-weight:600;transition:all .2s;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(79,70,229,.35);}
+.btn-secondary{background:var(--surface);border:1px solid var(--border);color:var(--text2);}
+.btn-secondary:hover{border-color:var(--primary);color:var(--primary);}
+.btn-success{background:#d1fae5;border:1px solid #a7f3d0;color:#065f46;}
+.btn-success:hover{background:#a7f3d0;}
+.btn-danger{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;}
+.btn-danger:hover{background:#fca5a5;}
+.btn-warning{background:#fff7ed;border:1px solid #fed7aa;color:#c2410c;}
+.btn-sm{padding:6px 12px;font-size:.77rem;}
+.btn-block{width:100%;justify-content:center;}
+.btn-register{width:100%;background:linear-gradient(135deg,var(--primary),var(--purple));color:#fff;border:none;
+  padding:10px;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;cursor:pointer;
+  font-size:.83rem;transition:all .2s;display:block;text-align:center;}
+.btn-register:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 16px rgba(79,70,229,.4);}
+.btn-registered{width:100%;background:#d1fae5;border:1px solid #a7f3d0;color:#065f46;
+  padding:10px;border-radius:10px;font-size:.83rem;text-align:center;display:block;font-weight:600;}
+
+/* ── TABLES ── */
+.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px;box-shadow:0 2px 8px var(--shadow);}
+table{width:100%;border-collapse:collapse;}
+thead{background:var(--surface);}
+th{padding:12px 16px;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}
+td{padding:12px 16px;font-size:.84rem;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text2);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafbff;}
+
+/* ── FORMS ── */
+.form-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:26px;box-shadow:0 2px 8px var(--shadow);}
+.form-group{margin-bottom:16px;}
+label{display:block;font-size:.79rem;font-weight:600;color:var(--text2);margin-bottom:6px;}
+input,select,textarea{width:100%;background:var(--surface);border:1.5px solid var(--border);color:var(--text);
+  padding:10px 12px;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;
+  outline:none;transition:border-color .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px rgba(79,70,229,.08);}
+textarea{resize:vertical;min-height:88px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-actions{display:flex;gap:10px;margin-top:8px;}
+
+/* ── STATUS BADGES ── */
+.badge{padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;display:inline-flex;align-items:center;gap:4px;}
+.badge-approved{background:#d1fae5;color:#065f46;}
+.badge-pending{background:#fff7ed;color:#c2410c;}
+.badge-rejected{background:#fee2e2;color:#991b1b;}
+.badge-registered{background:#ede9fe;color:#5b21b6;}
+
+/* ── FLASH ── */
+.flash-wrap{margin-bottom:18px;}
+.flash{padding:12px 16px;border-radius:12px;font-size:.85rem;display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+.flash.success{background:#d1fae5;border:1px solid #a7f3d0;color:#065f46;}
+.flash.error{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;}
+.flash.info{background:#e0f2fe;border:1px solid #7dd3fc;color:#0369a1;}
+
+/* ── FILTERS / SEARCH ── */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center;}
+.filter-btn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);
+  color:var(--muted);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:.78rem;font-weight:600;transition:all .2s;}
+.filter-btn:hover,.filter-btn.active{border-color:var(--primary);color:var(--primary);background:var(--primary-light);}
+.search-row{display:flex;gap:10px;margin-bottom:18px;align-items:center;}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--white);border:1.5px solid var(--border);
+  border-radius:10px;padding:8px 14px;flex:1;max-width:320px;}
+.search-box input{background:none;border:none;padding:0;font-size:.85rem;}
+.search-box input:focus{border:none;box-shadow:none;}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:52px 24px;color:var(--muted);}
+.empty-icon{font-size:2.6rem;margin-bottom:10px;}
+.empty-state h3{font-family:'Fraunces',serif;color:var(--text);margin-bottom:8px;font-size:1.1rem;}
+
+/* ── AI PANEL ── */
+.ai-panel{background:linear-gradient(135deg,#faf5ff,#eff6ff);border:1px solid #ddd6fe;border-radius:16px;padding:18px;margin-bottom:20px;}
+.ai-panel-title{font-size:.82rem;font-weight:700;color:var(--purple);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.ai-insight{background:#fff;border:1px solid #ddd6fe;border-radius:10px;padding:12px 14px;font-size:.82rem;color:var(--text2);line-height:1.5;}
+
+/* ── CHATBOT ── */
+.chatbot-fab{position:fixed;bottom:28px;right:28px;z-index:500;width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,var(--primary),var(--purple));border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;
+  box-shadow:0 6px 24px rgba(79,70,229,.45);transition:all .3s;}
+.chatbot-fab:hover{transform:scale(1.1);}
+.chatbot-window{position:fixed;bottom:90px;right:28px;z-index:500;width:340px;height:480px;
+  background:var(--white);border:1px solid var(--border);border-radius:20px;
+  box-shadow:0 16px 48px rgba(60,72,120,.18);display:none;flex-direction:column;overflow:hidden;}
+.chatbot-window.open{display:flex;}
+.chat-header{padding:14px 18px;background:linear-gradient(135deg,var(--primary),var(--purple));color:#fff;
+  display:flex;align-items:center;justify-content:space-between;}
+.chat-header-info{display:flex;align-items:center;gap:10px;}
+.chat-avatar{width:34px;height:34px;background:rgba(255,255,255,.25);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.chat-name{font-weight:700;font-size:.9rem;}
+.chat-status{font-size:.72rem;opacity:.8;}
+.chat-close{background:none;border:none;color:#fff;cursor:pointer;font-size:1.2rem;opacity:.7;}
+.chat-close:hover{opacity:1;}
+.chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#fafbff;}
+.chat-msg{max-width:82%;padding:10px 12px;border-radius:12px;font-size:.82rem;line-height:1.5;}
+.msg-bot{background:var(--white);border:1px solid var(--border);align-self:flex-start;border-radius:4px 12px 12px 12px;}
+.msg-user{background:linear-gradient(135deg,var(--primary),var(--purple));color:#fff;align-self:flex-end;border-radius:12px 12px 4px 12px;}
+.chat-input-row{padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--white);}
+.chat-input{flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.83rem;outline:none;}
+.chat-input:focus{border-color:var(--primary);}
+.chat-send{width:36px;height:36px;border-radius:10px;background:var(--primary);border:none;color:#fff;cursor:pointer;font-size:1rem;}
+
+/* ── PROFILE ── */
+.profile-card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:28px;box-shadow:0 2px 8px var(--shadow);}
+.profile-avatar-lg{width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,var(--primary),var(--purple));
+  display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:1.8rem;font-weight:900;color:#fff;margin-bottom:16px;}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0;}
+
+/* ── AI PREDICTION WIDGET ── */
+.pred-card{background:linear-gradient(135deg,#f0f9ff,#faf5ff);border:1px solid #bae6fd;border-radius:16px;padding:20px;}
+.pred-ring{width:90px;height:90px;border-radius:50%;border:8px solid #e0e7ff;
+  display:flex;align-items:center;justify-content:center;margin:0 auto 12px;position:relative;}
+.pred-ring .pct{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:900;color:var(--primary);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .main{padding:16px;}
+  .form-row{grid-template-columns:1fr;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .nav-center{display:none;}
+}
+</style>
+</head>
+<body>
+
+{% if session.user_id %}
+<!-- TOPNAV -->
+<nav class="topnav">
+  <a class="nav-brand" href="/">
+    <div class="brand-icon">🎓</div>
+    AI CampusEvents
+  </a>
+  <div class="nav-center">
+    {% if session.role == 'admin' %}
+      <a href="/admin" class="nav-pill {% if request.endpoint=='admin_dashboard' %}active{% endif %}">Dashboard</a>
+      <a href="/admin/events" class="nav-pill {% if 'admin_event' in request.endpoint %}active{% endif %}">Events</a>
+      <a href="/admin/users" class="nav-pill {% if 'admin_user' in request.endpoint %}active{% endif %}">Users</a>
+    {% elif session.role == 'organizer' %}
+      <a href="/organizer" class="nav-pill {% if request.endpoint=='org_dashboard' %}active{% endif %}">Dashboard</a>
+      <a href="/organizer/events/create" class="nav-pill">+ New Event</a>
+    {% else %}
+      <a href="/student/events" class="nav-pill {% if request.endpoint=='student_events' %}active{% endif %}">Browse Events</a>
+      <a href="/student/my-events" class="nav-pill {% if request.endpoint=='my_registrations' %}active{% endif %}">My Events</a>
+    {% endif %}
+  </div>
+  <div class="nav-right">
+    <span class="role-badge rb-{{ session.role }}">{{ session.role }}</span>
+    <div class="notif-btn" id="notifBtn" onclick="markNotifsRead()">
+      🔔
+      <div class="notif-dot" id="notifDot" style="display:none;"></div>
+    </div>
+    <div class="avatar">{{ session.name[:2]|upper }}</div>
+    <span style="font-size:.82rem;color:var(--muted);font-weight:500;">{{ session.name.split()[0] }}</span>
+    <a href="/logout" class="btn-logout">Sign out</a>
+  </div>
+</nav>
+
+<div class="app-body">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    {% if session.role == 'admin' %}
+      <div class="sidebar-section">Admin Panel</div>
+      <a href="/admin" class="nav-item {% if request.endpoint=='admin_dashboard' %}active{% endif %}">
+        <span class="ni">📊</span> Dashboard</a>
+      <a href="/admin/events" class="nav-item {% if request.endpoint=='admin_events' %}active{% endif %}">
+        <span class="ni">📅</span> All Events</a>
+      <a href="/admin/users" class="nav-item {% if request.endpoint=='admin_users' %}active{% endif %}">
+        <span class="ni">👥</span> Manage Users</a>
+      <a href="/admin/venues" class="nav-item {% if request.endpoint=='admin_venues' %}active{% endif %}">
+        <span class="ni">🏛️</span> Venues</a>
+      <a href="/admin/reports" class="nav-item {% if request.endpoint=='admin_reports' %}active{% endif %}">
+        <span class="ni">📈</span> Reports</a>
+      <div class="sidebar-section">Account</div>
+      <a href="/profile" class="nav-item {% if request.endpoint=='profile' %}active{% endif %}">
+        <span class="ni">👤</span> Profile</a>
+
+    {% elif session.role == 'organizer' %}
+      <div class="sidebar-section">Organizer</div>
+      <a href="/organizer" class="nav-item {% if request.endpoint=='org_dashboard' %}active{% endif %}">
+        <span class="ni">🏠</span> Dashboard</a>
+      <a href="/organizer/events/create" class="nav-item {% if request.endpoint=='org_create_event' %}active{% endif %}">
+        <span class="ni">➕</span> Create Event</a>
+      <div class="sidebar-section">Tools</div>
+      <a href="/organizer/venue-availability" class="nav-item {% if request.endpoint=='venue_availability' %}active{% endif %}">
+        <span class="ni">🏛️</span> Venue Checker</a>
+      <div class="sidebar-section">Account</div>
+      <a href="/profile" class="nav-item">
+        <span class="ni">👤</span> Profile</a>
+
+    {% else %}
+      <div class="sidebar-section">Student</div>
+      <a href="/student/events" class="nav-item {% if request.endpoint=='student_events' %}active{% endif %}">
+        <span class="ni">🎉</span> All Events</a>
+      <a href="/student/calendar" class="nav-item {% if request.endpoint=='student_calendar' %}active{% endif %}">
+        <span class="ni">📆</span> Event Calendar</a>
+      <a href="/student/my-events" class="nav-item {% if request.endpoint=='my_registrations' %}active{% endif %}">
+        <span class="ni">📌</span> My Events</a>
+      <a href="/student/profile" class="nav-item {% if request.endpoint=='student_profile' %}active{% endif %}">
+        <span class="ni">👤</span> Profile</a>
+    {% endif %}
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}<div class="flash-wrap">
+        {% for cat, msg in messages %}
+          <div class="flash {{ cat }}">{{ '✅' if cat=='success' else '❌' if cat=='error' else 'ℹ️' }} {{ msg }}</div>
+        {% endfor %}
+      </div>{% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<!-- AI CHATBOT (Student only) -->
+{% if session.role == 'student' %}
+<button class="chatbot-fab" onclick="toggleChat()" title="AI Assistant">🤖</button>
+<div class="chatbot-window" id="chatWindow">
+  <div class="chat-header">
+    <div class="chat-header-info">
+      <div class="chat-avatar">🤖</div>
+      <div><div class="chat-name">Campus AI Assistant</div><div class="chat-status">● Online</div></div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg msg-bot">👋 Hi! I'm your AI Campus Assistant. Ask me about events, registration, venues, or schedules!</div>
+  </div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chatInput" placeholder="Ask me anything..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="chat-send" onclick="sendChat()">➤</button>
+  </div>
+</div>
+{% endif %}
+
+<script>
+// Chatbot
+function toggleChat(){ document.getElementById('chatWindow').classList.toggle('open'); }
+async function sendChat(){
+  const inp = document.getElementById('chatInput');
+  const msg = inp.value.trim(); if(!msg) return;
+  addChatMsg(msg, 'user'); inp.value='';
+  const r = await fetch('/api/chatbot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
+  const d = await r.json();
+  addChatMsg(d.reply || 'Sorry, I could not understand that.', 'bot');
+}
+function addChatMsg(text, who){
+  const box = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `chat-msg msg-${who}`;
+  div.innerHTML = text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  box.appendChild(div); box.scrollTop = box.scrollHeight;
+}
+
+// Notifications
+async function checkNotifs(){
+  const r = await fetch('/notifications/count');
+  const d = await r.json();
+  document.getElementById('notifDot').style.display = d.count > 0 ? 'block' : 'none';
+}
+async function markNotifsRead(){
+  await fetch('/notifications/read',{method:'POST'});
+  document.getElementById('notifDot').style.display='none';
+}
+setInterval(checkNotifs, 30000); checkNotifs();
+</script>
+
+{% else %}
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}<div style="position:fixed;top:20px;right:20px;z-index:999;">
+      {% for cat, msg in messages %}
+        <div class="flash {{ cat }}">{{ '✅' if cat=='success' else '❌' }} {{ msg }}</div>
+      {% endfor %}
+    </div>{% endif %}
+  {% endwith %}
+  {% block auth_content %}{% endblock %}
+</main>
+{% endif %}
+</body>
+</html>

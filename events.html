@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Manage Events — Admin{% endblock %}
+{% block content %}
+<div class="page-header-row">
+  <div class="page-header"><h1>All Events</h1><p>Review, approve or reject events submitted by organizers.</p></div>
+</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Event</th><th>Organizer</th><th>Category</th><th>Date</th><th>Venue</th><th>Participants</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for e in events %}
+      <tr>
+        <td><strong>{{ e['title'] }}</strong></td>
+        <td style="color:var(--muted);">{{ e['org_name'] }}</td>
+        <td><span class="ec-cat cat-{{ e['category']|lower }}">{{ e['category'] }}</span></td>
+        <td>{{ e['date']|fdate }}</td>
+        <td>{{ e['venue_name'] or '—' }}</td>
+        <td>{{ e['reg_count'] }} / {{ e['max_participants'] }}</td>
+        <td><span class="badge badge-{{ e['status'] }}">{{ e['status']|title }}</span></td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap;">
+          {% if e['status'] == 'pending' %}
+          <form method="POST" action="/admin/events/approve/{{ e['id'] }}"><button class="btn btn-success btn-sm">✅</button></form>
+          <form method="POST" action="/admin/events/reject/{{ e['id'] }}"><button class="btn btn-danger btn-sm">❌</button></form>
+          {% else %}
+          <span style="color:var(--muted2);font-size:.78rem;">{{ e['status']|title }}</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

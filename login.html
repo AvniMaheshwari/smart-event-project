@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Login — AI CampusEvents{% endblock %}
+{% block auth_content %}
+<style>
+.auth-page{min-height:100vh;display:flex;background:linear-gradient(135deg,#eef2ff 0%,#fdf4ff 50%,#fff7f0 100%);}
+.auth-left{flex:1;display:flex;align-items:center;justify-content:center;padding:48px;}
+.auth-right{width:480px;background:#fff;display:flex;align-items:center;justify-content:center;padding:48px;box-shadow:-8px 0 40px rgba(79,70,229,.08);}
+.auth-hero h1{font-family:'Fraunces',serif;font-size:2.8rem;font-weight:900;color:#1e1b4b;line-height:1.1;margin-bottom:16px;}
+.auth-hero h1 span{color:var(--primary);}
+.auth-hero p{color:var(--muted);font-size:.95rem;line-height:1.6;max-width:380px;margin-bottom:28px;}
+.feature-list{display:flex;flex-direction:column;gap:12px;}
+.feature-item{display:flex;align-items:center;gap:12px;font-size:.88rem;color:var(--text2);}
+.feature-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.auth-card{width:100%;max-width:360px;}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px;}
+.auth-logo-icon{width:44px;height:44px;background:linear-gradient(135deg,var(--primary),var(--purple));border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+.auth-logo-text{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:900;color:var(--primary);}
+.auth-title{font-family:'Fraunces',serif;font-size:1.7rem;font-weight:900;margin-bottom:4px;}
+.auth-sub{color:var(--muted);font-size:.85rem;margin-bottom:24px;}
+.creds-box{background:#f8faff;border:1px solid #c7d2fe;border-radius:12px;padding:14px 16px;margin-bottom:22px;font-size:.78rem;line-height:1.8;color:var(--muted);}
+.creds-box strong{color:var(--text2);}
+.auth-footer{text-align:center;margin-top:18px;font-size:.83rem;color:var(--muted);}
+.auth-footer a{color:var(--primary);font-weight:600;}
+@media(max-width:768px){.auth-left{display:none;}.auth-right{width:100%;}}
+</style>
+
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-hero">
+      <h1>Smart Event<br>Management<br>with <span>AI</span></h1>
+      <p>An intelligent platform for colleges to manage, discover, and participate in events — powered by AI recommendations.</p>
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-icon" style="background:#ede9fe;">🤖</div>
+          AI-powered event recommendations
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon" style="background:#d1fae5;">📊</div>
+          Attendance prediction & analytics
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon" style="background:#fff7ed;">🗓️</div>
+          Smart scheduling conflict detection
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon" style="background:#e0f2fe;">💬</div>
+          AI chatbot for instant support
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">🎓</div>
+        <div class="auth-logo-text">AI CampusEvents</div>
+      </div>
+      <h2 class="auth-title">Welcome back!</h2>
+      <p class="auth-sub">Sign in to continue to your dashboard.</p>
+
+      <div class="creds-box">
+        <strong>Demo Credentials</strong><br>
+        Admin: <strong>admin@college.edu</strong> / admin123<br>
+        Organizer: <strong>organizer@college.edu</strong> / org123<br>
+        Student: <strong>rohan@student.edu</strong> / student123
+      </div>
+
+      <form method="POST">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" name="email" placeholder="you@college.edu" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" style="padding:12px;">Sign In →</button>
+      </form>
+
+      <div class="auth-footer">
+        New student? <a href="/register">Create an account</a>
+      </div>
+      <div class="auth-footer" style="margin-top:8px;">
+        Event organizer? <a href="/register?role=organizer">Register as Organizer</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

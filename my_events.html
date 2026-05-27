@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}My Events{% endblock %}
+{% block content %}
+<div class="page-header"><h1>My Registrations 📌</h1><p>Your upcoming and past event registrations.</p></div>
+
+{% if registrations %}
+<div style="display:flex;flex-direction:column;gap:14px;">
+  {% for r in registrations %}
+  <div style="background:var(--white);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 2px 8px var(--shadow);">
+    <div style="display:grid;grid-template-columns:1fr auto;gap:16px;padding:16px 20px;align-items:center;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#fafbff,#f3f4ff);">
+      <div>
+        <span class="ec-cat cat-{{ r['category']|lower }}" style="margin-bottom:6px;display:inline-block;">{{ r['category'] }}</span>
+        <div style="font-family:'Fraunces',serif;font-weight:900;font-size:1.05rem;">{{ r['title'] }}</div>
+        <div style="font-size:.78rem;color:var(--muted);margin-top:3px;">
+          📅 {{ r['date']|fdate }} · ⏰ {{ r['time'] }} · 📍 {{ r['venue_name'] or 'TBD' }}
+        </div>
+        {% if r['registration_fee'] and r['registration_fee'] > 0 %}
+        <div style="font-size:.76rem;background:#fff7ed;border:1px solid #fed7aa;color:#c2410c;padding:2px 10px;border-radius:20px;display:inline-block;margin-top:4px;font-weight:600;">
+          💳 Fee Paid: ₹{{ r['registration_fee']|int }}
+        </div>
+        {% else %}
+        <div style="font-size:.74rem;color:#065f46;margin-top:4px;font-weight:600;">🆓 Free Event</div>
+        {% endif %}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+        {% if r['attended'] %}
+        <span class="badge badge-approved">✅ Attended</span>
+        {% else %}
+        <span class="badge badge-pending">⏳ Registered</span>
+        {% endif %}
+        <!-- QR TICKET BUTTON -->
+        <a href="/student/qr/{{ r['event_id'] }}" class="btn btn-primary btn-sm">🎫 QR Ticket</a>
+        <form method="POST" action="/student/events/cancel/{{ r['event_id'] }}" onsubmit="return confirm('Cancel registration?')" style="margin:0;">
+          <button class="btn btn-danger btn-sm">Cancel</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- FEEDBACK SECTION -->
+    <div style="padding:14px 20px;">
+      {% set fb = feedbacks_map.get(r['event_id']) if feedbacks_map else None %}
+      {% if fb %}
+        <!-- Already submitted feedback -->
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:.8rem;color:var(--muted);font-weight:600;">Your feedback:</span>
+          <span style="color:#f59e0b;">{{ '⭐' * fb['rating'] }}</span>
+          <span style="font-size:.8rem;color:var(--muted);">{{ fb['comment'] or '' }}</span>
+          <span style="font-size:.72rem;color:var(--muted2);">✓ Submitted</span>
+        </div>
+      {% else %}
+        <!-- Feedback form -->
+        <div>
+          <div style="font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:8px;">
+            💬 Leave Feedback{% if not r['attended'] %} <span style="font-weight:400;color:var(--muted);">(available to all registered students)</span>{% endif %}
+          </div>
+          <form method="POST" action="/student/feedback/{{ r['event_id'] }}" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+            <div>
+              <label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:4px;">Rating</label>
+              <div id="stars-{{ r['event_id'] }}" style="display:flex;gap:3px;cursor:pointer;">
+                {% for s in [1,2,3,4,5] %}
+                <span onclick="setRating('{{ r['event_id'] }}',{{ s }})" style="font-size:1.4rem;transition:.1s;" data-star="{{ s }}">☆</span>
+                {% endfor %}
+              </div>
+              <input type="hidden" name="rating" id="rating-{{ r['event_id'] }}" value="5">
+            </div>
+            <div style="flex:1;min-width:160px;">
+              <label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:4px;">Comment (optional)</label>
+              <input type="text" name="comment" placeholder="Share your experience..." style="padding:8px 12px;">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm" style="white-space:nowrap;">⭐ Submit</button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">📭</div><h3>No registrations yet</h3>
+  <p>Browse events and register to see them here.</p>
+  <br><a href="/student/events" class="btn btn-primary">Browse Events →</a>
+</div>
+{% endif %}
+
+<script>
+function setRating(eventId, val) {
+  document.getElementById('rating-' + eventId).value = val;
+  const stars = document.querySelectorAll(`#stars-${eventId} span`);
+  stars.forEach((s, i) => {
+    s.textContent = i < val ? '⭐' : '☆';
+  });
+}
+// Init all stars to show 5
+document.querySelectorAll('[id^="stars-"]').forEach(container => {
+  const eid = container.id.replace('stars-','');
+  setRating(eid, 5);
+});
+</script>
+{% endblock %}

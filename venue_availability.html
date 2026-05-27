@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Venue Availability Checker{% endblock %}
+{% block content %}
+<div class="page-header"><h1>🏛️ Venue Availability Checker</h1><p>Check if a venue is free for your desired time slot before creating an event.</p></div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+
+  <div class="form-card">
+    <div class="form-group">
+      <label>Select Venue *</label>
+      <select id="vaVenue">
+        <option value="">— Choose a venue —</option>
+        {% for v in venues %}
+        <option value="{{ v['id'] }}" data-capacity="{{ v['capacity'] }}" data-location="{{ v['location'] }}">
+          {{ v['name'] }} (cap: {{ v['capacity'] }})
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div id="venueInfo" style="display:none;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:.82rem;color:#0369a1;"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date *</label>
+        <input type="date" id="vaDate">
+      </div>
+      <div class="form-group">
+        <label>Start Time *</label>
+        <input type="time" id="vaStart">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>End Time</label>
+        <input type="time" id="vaEnd">
+      </div>
+      <div class="form-group" style="display:flex;align-items:flex-end;">
+        <button onclick="doCheck()" class="btn btn-primary btn-block">🔍 Check Availability</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultArea">
+    <div class="ai-panel">
+      <div class="ai-panel-title">🤖 How it works</div>
+      <div class="ai-insight">
+        Select a venue, date and time above. The AI will check if there are any event conflicts and suggest alternative slots or venues if needed.<br><br>
+        <strong>Green</strong> = Venue is free ✅<br>
+        <strong>Red</strong> = Conflict found ❌ + alternatives shown
+      </div>
+    </div>
+
+    <!-- All Venue Schedule for selected date -->
+    <div id="daySchedule" style="display:none;" class="card">
+      <div class="card-header"><h3 id="scheduleTitle">📅 Day Schedule</h3></div>
+      <div id="scheduleBody" style="padding:0;max-height:360px;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('vaVenue').addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  const info = document.getElementById('venueInfo');
+  if (this.value) {
+    info.style.display = 'block';
+    info.innerHTML = `📍 ${opt.dataset.location || 'Campus'} &nbsp;·&nbsp; 👥 Capacity: ${opt.dataset.capacity}`;
+  } else {
+    info.style.display = 'none';
+  }
+});
+
+document.getElementById('vaDate').addEventListener('change', loadDaySchedule);
+
+async function doCheck() {
+  const venue = document.getElementById('vaVenue').value;
+  const date  = document.getElementById('vaDate').value;
+  const start = document.getElementById('vaStart').value;
+  const end   = document.getElementById('vaEnd').value;
+  if (!venue || !date || !start) { alert('Please fill in venue, date and start time.'); return; }
+
+  const r = await fetch('/organizer/venue-check', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({venue_id: venue, date, start_time: start, end_time: end})
+  });
+  const d = await r.json();
+
+  let html = '';
+  if (d.is_available) {
+    html = `<div style="background:#d1fae5;border:1px solid #a7f3d0;border-radius:14px;padding:20px;text-align:center;">
+      <div style="font-size:2rem;margin-bottom:8px;">✅</div>
+      <div style="font-weight:800;font-size:1rem;color:#065f46;">Venue is AVAILABLE!</div>
+      <div style="font-size:.82rem;color:#047857;margin-top:6px;">No conflicts found for the selected time slot.</div>
+      <a href="/organizer/events/create" class="btn btn-primary" style="margin-top:14px;display:inline-flex;">➕ Create Event Here</a>
+    </div>`;
+  } else {
+    html = `<div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:14px;padding:16px;margin-bottom:14px;">
+      <div style="font-weight:700;color:#991b1b;margin-bottom:4px;">❌ Venue Conflict Detected</div>
+      <div style="font-size:.82rem;color:#b91c1c;">"${d.conflict.title}" is booked from ${d.conflict.time} – ${d.conflict.end_time || 'end'}</div>
+    </div>`;
+
+    if (d.alt_times && d.alt_times.length) {
+      html += '<div style="font-weight:700;font-size:.85rem;margin:12px 0 8px;color:#0369a1;">⏰ Free time slots on the same day:</div>';
+      d.alt_times.forEach(s => {
+        html += `<div style="padding:10px 14px;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:600;">${s.start} – ${s.end}</span>
+          <span style="font-size:.75rem;color:#0369a1;">Same venue · click to use</span>
+        </div>`;
+      });
+    }
+
+    if (d.alt_venues && d.alt_venues.length) {
+      html += '<div style="font-weight:700;font-size:.85rem;margin:14px 0 8px;color:#5b21b6;">🏛️ Alternative venues available at same time:</div>';
+      d.alt_venues.slice(0,4).forEach(v => {
+        html += `<div style="padding:12px 14px;background:#faf5ff;border:1px solid #ddd6fe;border-radius:10px;margin-bottom:8px;">
+          <div style="font-weight:700;font-size:.85rem;color:#4c1d95;">${v.name}</div>
+          <div style="font-size:.75rem;color:var(--muted);">👥 ${v.capacity} seats · 📍 ${v.location || 'Campus'}</div>
+        </div>`;
+      });
+    }
+  }
+
+  document.getElementById('resultArea').innerHTML = `<div>${html}</div>`;
+  loadDaySchedule();
+}
+
+async function loadDaySchedule() {
+  const date = document.getElementById('vaDate').value;
+  if (!date) return;
+  // We'll just show the result panel; full schedule would need an extra API
+  document.getElementById('daySchedule') && (document.getElementById('daySchedule').style.display = 'none');
+}
+</script>
+{% endblock %}

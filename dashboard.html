@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Organizer Dashboard{% endblock %}
+{% block content %}
+<div class="page-header-row">
+  <div class="page-header"><h1>Organizer Dashboard</h1><p>Manage your events and track registrations.</p></div>
+  <a href="/organizer/events/create" class="btn btn-primary">➕ Create Event</a>
+</div>
+
+{% if notifs %}
+<div class="ai-panel" style="background:#f0fdf4;border-color:#bbf7d0;">
+  <div class="ai-panel-title" style="color:var(--success);">🔔 Notifications</div>
+  {% for n in notifs %}<div class="ai-insight" style="margin-bottom:8px;">{{ n['message'] }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<div class="stat-grid">
+  <div class="stat-card sc-purple"><div class="sc-icon">📅</div><div class="sc-val">{{ stats.total }}</div><div class="sc-label">My Events</div></div>
+  <div class="stat-card sc-green"><div class="sc-icon">✅</div><div class="sc-val">{{ stats.approved }}</div><div class="sc-label">Approved</div></div>
+  <div class="stat-card sc-orange"><div class="sc-icon">⏳</div><div class="sc-val">{{ stats.pending }}</div><div class="sc-label">Pending</div></div>
+  <div class="stat-card sc-blue"><div class="sc-icon">📋</div><div class="sc-val">{{ stats.total_reg }}</div><div class="sc-label">Total Registrations</div></div>
+</div>
+
+{% if my_events %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Event</th><th>Category</th><th>Date</th><th>Fee</th><th>Registrations</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for e in my_events %}
+      <tr>
+        <td><strong>{{ e['title'] }}</strong></td>
+        <td><span class="ec-cat cat-{{ e['category']|lower }}">{{ e['category'] }}</span></td>
+        <td>{{ e['date']|fdate }}</td>
+        <td>{{ '₹'+e['registration_fee']|int|string if e['registration_fee'] else '🆓 Free' }}</td>
+        <td>
+          <span style="font-weight:700;">{{ e['reg_count'] }}</span>
+          <span style="color:var(--muted)"> / {{ e['max_participants'] }}</span>
+          <div class="seat-bar" style="width:80px;margin-top:4px;display:inline-block;">
+            <div class="seat-fill" style="width:{{ e['reg_count']|pct(e['max_participants']) }}%;"></div>
+          </div>
+        </td>
+        <td><span class="badge badge-{{ e['status'] }}">{{ e['status']|title }}</span></td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <a href="/organizer/events/{{ e['id'] }}/registrations" class="btn btn-secondary btn-sm">👥 View</a>
+            <a href="/organizer/events/edit/{{ e['id'] }}" class="btn btn-warning btn-sm">✏️</a>
+            <form method="POST" action="/organizer/events/delete/{{ e['id'] }}" onsubmit="return confirm('Delete?')">
+              <button class="btn btn-danger btn-sm">🗑</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">📅</div>
+  <h3>No events yet</h3>
+  <p>Create your first event to get started.</p>
+  <br><a href="/organizer/events/create" class="btn btn-primary">➕ Create Event</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Registrations — {{ event['title'] }}{% endblock %}
+{% block content %}
+<div class="page-header-row">
+  <div class="page-header">
+    <h1>👥 Registrations</h1>
+    <p>{{ event['title'] }} · {{ event['date']|fdate }} · {{ event['venue_name'] if event['venue_name'] else 'TBD' }}</p>
+  </div>
+  <a href="/organizer" class="btn btn-secondary">← Back</a>
+</div>
+
+<!-- AI Attendance Prediction -->
+<div class="ai-panel" style="margin-bottom:20px;">
+  <div class="ai-panel-title">🤖 AI Attendance Prediction</div>
+  <div style="display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;">
+    <div class="pred-ring" style="border-color:{% if prediction.level=='High' %}#a7f3d0{% elif prediction.level=='Moderate' %}#fde68a{% else %}#fca5a5{% endif %};">
+      <span class="pct">{{ prediction.rate }}%</span>
+    </div>
+    <div>
+      <div style="font-size:.82rem;font-weight:700;margin-bottom:6px;">
+        Predicted Attendance Rate: 
+        <span style="color:{% if prediction.level=='High' %}var(--success){% elif prediction.level=='Moderate' %}var(--warning){% else %}var(--accent){% endif %};">
+          {{ prediction.level }} ({{ prediction.count }} / {{ prediction.registered }} expected)
+        </span>
+      </div>
+      <div class="ai-insight">💡 {{ prediction.insight }}</div>
+      <div style="font-size:.74rem;color:var(--muted);margin-top:6px;">Model confidence: {{ prediction.confidence }}%</div>
+    </div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px;">
+  <div class="stat-card sc-purple"><div class="sc-icon">📋</div><div class="sc-val">{{ registrations|length }}</div><div class="sc-label">Registered</div></div>
+  <div class="stat-card sc-green"><div class="sc-icon">✅</div><div class="sc-val">{{ registrations|selectattr('attended','eq',1)|list|length }}</div><div class="sc-label">Attended</div></div>
+  <div class="stat-card sc-blue"><div class="sc-icon">🎯</div><div class="sc-val">{{ event['max_participants'] }}</div><div class="sc-label">Max Capacity</div></div>
+  <div class="stat-card sc-orange"><div class="sc-icon">📊</div><div class="sc-val">{{ registrations|length|pct(event['max_participants']) }}%</div><div class="sc-label">Fill Rate</div></div>
+</div>
+
+<!-- Mark attendance -->
+<div class="card">
+  <div class="card-header">
+    <h3>📋 Participant List</h3>
+    <span style="font-size:.8rem;color:var(--muted);">Check boxes to mark attendance</span>
+  </div>
+  <form method="POST" action="/organizer/events/{{ event['id'] }}/attendance">
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr><th>Attended</th><th>Name</th><th>Email</th><th>Department</th><th>Reg No.</th><th>Registered On</th></tr>
+        </thead>
+        <tbody>
+          {% for r in registrations %}
+          <tr>
+            <td>
+              <input type="checkbox" name="attended" value="{{ r['user_id'] }}"
+                     {{ 'checked' if r['attended'] }}
+                     style="width:18px;height:18px;cursor:pointer;accent-color:var(--primary);">
+            </td>
+            <td><strong>{{ r['name'] }}</strong></td>
+            <td style="color:var(--muted);">{{ r['email'] }}</td>
+            <td>{{ r['department'] or '—' }}</td>
+            <td style="font-family:monospace;font-size:.8rem;color:var(--muted);">{{ r['reg_no'] or '—' }}</td>
+            <td style="color:var(--muted);font-size:.8rem;">{{ r['registered_at'][:10] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if registrations %}
+    <div style="padding:14px 18px;border-top:1px solid var(--border);">
+      <button type="submit" class="btn btn-primary">💾 Save Attendance</button>
+    </div>
+    {% endif %}
+  </form>
+  {% if not registrations %}
+  <div class="empty-state"><div class="empty-icon">📭</div><h3>No registrations yet</h3><p>Students haven't registered for this event.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

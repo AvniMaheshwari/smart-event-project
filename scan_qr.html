@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Scan QR — {{ event['title'] }}{% endblock %}
+{% block content %}
+<div class="page-header-row">
+  <div class="page-header"><h1>📷 QR Attendance Scanner</h1><p>{{ event['title'] }} · {{ event['date']|fdate }}</p></div>
+  <a href="/organizer/events/{{ event['id'] }}/registrations" class="btn btn-secondary">← Registrations</a>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+
+  <!-- SCAN FORM -->
+  <div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-header"><h3>🔍 Scan / Enter QR Token</h3></div>
+      <div class="card-body">
+        <form method="POST">
+          <div class="form-group">
+            <label>QR Token (paste or type from QR scan)</label>
+            <input type="text" name="token" placeholder="e.g. a3f8b2c1d4e5f6a7b8..." autofocus
+                   style="font-family:monospace;" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" style="padding:12px;">✅ Mark Attendance</button>
+        </form>
+
+        {% if result %}
+        <div style="margin-top:16px;padding:14px 16px;border-radius:12px;
+          background:{{ '#d1fae5' if result.ok else '#fee2e2' }};
+          border:1px solid {{ '#a7f3d0' if result.ok else '#fca5a5' }};
+          color:{{ '#065f46' if result.ok else '#991b1b' }};
+          font-weight:600;font-size:.9rem;">
+          {{ result.msg }}
+          {% if result.ok and result.user %}
+          <div style="font-size:.8rem;font-weight:400;margin-top:6px;">
+            Dept: {{ result.user.department or 'N/A' }} · Reg: {{ result.user.reg_no or 'N/A' }}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid" style="grid-template-columns:1fr 1fr;">
+      <div class="stat-card sc-blue">
+        <div class="sc-icon">📋</div>
+        <div class="sc-val">{{ registrations|length }}</div>
+        <div class="sc-label">Registered</div>
+      </div>
+      <div class="stat-card sc-green">
+        <div class="sc-icon">✅</div>
+        <div class="sc-val">{{ registrations|selectattr('attended','eq',1)|list|length }}</div>
+        <div class="sc-label">Attended</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATTENDANCE LIST -->
+  <div class="card">
+    <div class="card-header"><h3>👥 Live Attendance Board</h3></div>
+    <div style="max-height:500px;overflow-y:auto;">
+      {% for r in registrations %}
+      <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">
+        <div style="width:36px;height:36px;border-radius:10px;
+          background:{{ '#d1fae5' if r['attended'] else '#f3f4ff' }};
+          display:flex;align-items:center;justify-content:center;font-size:1rem;">
+          {{ '✅' if r['attended'] else '⏳' }}
+        </div>
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:.85rem;">{{ r['name'] }}</div>
+          <div style="font-size:.74rem;color:var(--muted);">
+            {{ r['email'] }}
+            {% if r['qr_used'] %} · <span style="color:#065f46;">QR scanned</span>{% endif %}
+          </div>
+        </div>
+        <span class="badge {{ 'badge-approved' if r['attended'] else 'badge-pending' }}">
+          {{ 'Present' if r['attended'] else 'Absent' }}
+        </span>
+      </div>
+      {% endfor %}
+      {% if not registrations %}
+      <div class="empty-state"><div class="empty-icon">📭</div><h3>No registrations</h3></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

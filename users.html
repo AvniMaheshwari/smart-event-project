@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users{% endblock %}
+{% block content %}
+<div class="page-header-row">
+  <div class="page-header"><h1>Manage Users</h1><p>View and manage all registered users.</p></div>
+  <div class="filters">
+    <a href="/admin/users" class="filter-btn {% if not role_filter %}active{% endif %}">All</a>
+    <a href="/admin/users?role=student" class="filter-btn {% if role_filter=='student' %}active{% endif %}">Students</a>
+    <a href="/admin/users?role=organizer" class="filter-btn {% if role_filter=='organizer' %}active{% endif %}">Organizers</a>
+    <a href="/admin/users?role=admin" class="filter-btn {% if role_filter=='admin' %}active{% endif %}">Admins</a>
+  </div>
+</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Year</th><th>Reg No.</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td><strong>{{ u['name'] }}</strong></td>
+        <td style="color:var(--muted);">{{ u['email'] }}</td>
+        <td><span class="role-badge rb-{{ u['role'] }}">{{ u['role'] }}</span></td>
+        <td>{{ u['department'] or '—' }}</td>
+        <td>{{ u['year'] or '—' }}</td>
+        <td style="font-family:monospace;font-size:.8rem;color:var(--muted);">{{ u['reg_no'] or '—' }}</td>
+        <td>
+          {% if u['id'] != session.user_id %}
+          <form method="POST" action="/admin/users/delete/{{ u['id'] }}" onsubmit="return confirm('Delete user?')">
+            <button class="btn btn-danger btn-sm">Delete</button>
+          </form>
+          {% else %}
+          <span style="color:var(--muted2);font-size:.78rem;">You</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

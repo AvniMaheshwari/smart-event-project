@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="page-header"><h1>My Profile</h1><p>Your account and participation history.</p></div>
+<div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;">
+  <div class="profile-card">
+    <div class="profile-avatar-lg">{{ user['name'][:2]|upper }}</div>
+    <div style="font-weight:800;font-size:1.1rem;margin-bottom:4px;">{{ user['name'] }}</div>
+    <div style="color:var(--muted);font-size:.82rem;margin-bottom:16px;">{{ user['email'] }}</div>
+    <hr class="divider">
+    <div style="display:flex;flex-direction:column;gap:9px;font-size:.83rem;">
+      <div>🏛️ <strong>Dept:</strong> {{ user['department'] or 'N/A' }}</div>
+      <div>🎓 <strong>Year:</strong> {{ user['year'] or 'N/A' }}</div>
+      <div>🪪 <strong>Reg No:</strong> <span style="font-family:monospace;">{{ user['reg_no'] or 'N/A' }}</span></div>
+      <div>🏷️ <strong>Interests:</strong> {{ user['interests']|from_json|join(', ') or 'None set' }}</div>
+    </div>
+    <hr class="divider">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div style="text-align:center;padding:14px;background:var(--surface);border-radius:12px;">
+        <div style="font-family:'Fraunces',serif;font-size:1.6rem;font-weight:900;color:var(--primary);">{{ stats.registered }}</div>
+        <div style="font-size:.73rem;color:var(--muted);">Registered</div>
+      </div>
+      <div style="text-align:center;padding:14px;background:var(--surface);border-radius:12px;">
+        <div style="font-family:'Fraunces',serif;font-size:1.6rem;font-weight:900;color:var(--success);">{{ stats.attended }}</div>
+        <div style="font-size:.73rem;color:var(--muted);">Attended</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>📜 Participation History</h3></div>
+    {% if history %}
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Event</th><th>Category</th><th>Date</th><th>Status</th><th>Rating</th></tr></thead>
+        <tbody>
+          {% for h in history %}
+          <tr>
+            <td><strong>{{ h['title'] }}</strong></td>
+            <td><span class="ec-cat cat-{{ h['category']|lower }}">{{ h['category'] }}</span></td>
+            <td>{{ h['date']|fdate }}</td>
+            <td>
+              {% if h['attended'] %}<span class="badge badge-approved">✅ Attended</span>
+              {% else %}<span class="badge badge-pending">Registered</span>{% endif %}
+            </td>
+            <td>{{ '⭐' * h['rating'] if h['rating'] else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><div class="empty-icon">📭</div><h3>No history yet</h3></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

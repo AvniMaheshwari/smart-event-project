@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit' if event else 'Create' }} Event{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>{{ '✏️ Edit Event' if event else '➕ Create New Event' }}</h1>
+  <p>{{ 'Update event details.' if event else 'Use AI Template Generator to auto-fill details instantly.' }}</p>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;">
+
+  <!-- LEFT: MAIN FORM -->
+  <div class="form-card">
+    <form method="POST" id="eventForm">
+
+      <!-- AI TEMPLATE GENERATOR -->
+      <div style="background:linear-gradient(135deg,#faf5ff,#eff6ff);border:1px solid #ddd6fe;border-radius:14px;padding:16px;margin-bottom:20px;">
+        <div style="font-size:.82rem;font-weight:700;color:#7c3aed;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+          🤖 AI Template Generator
+        </div>
+        <div style="font-size:.78rem;color:var(--muted);margin-bottom:10px;">
+          Fill in the title and category first, then click Generate to auto-fill description and tags.
+        </div>
+        <button type="button" onclick="generateTemplate()" class="btn btn-primary btn-sm" id="genBtn">
+          ✨ Generate AI Template
+        </button>
+        <div id="genStatus" style="font-size:.78rem;color:var(--muted);margin-top:8px;display:none;">
+          🤖 Generating template...
+        </div>
+        <div id="genResult" style="display:none;margin-top:10px;background:#fff;border:1px solid #ddd6fe;border-radius:10px;padding:12px;font-size:.78rem;">
+          <div id="genTips"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Event Title *</label>
+        <input type="text" name="title" id="titleInput" value="{{ data.get('title','') }}" placeholder="Enter a descriptive event title" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Category *</label>
+          <select name="category" id="categoryInput" required>
+            {% for cat in ['Tech','Cultural','Sports','Workshop','Music','Art'] %}
+            <option value="{{ cat }}" {{ 'selected' if data.get('category')==cat }}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Registration Fee (₹)</label>
+          <input type="number" name="registration_fee" id="feeInput"
+                 value="{{ data.get('registration_fee', 0) or 0 }}"
+                 min="0" step="10" placeholder="0 = Free">
+          <div style="font-size:.73rem;color:var(--muted);margin-top:3px;">Set 0 for free events</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Venue</label>
+          <select name="venue_id" id="venueSelect">
+            <option value="">— Select Venue —</option>
+            {% for v in venues %}
+            <option value="{{ v['id'] }}" {{ 'selected' if data.get('venue_id')|string==v['id']|string }}
+                    data-capacity="{{ v['capacity'] }}" data-location="{{ v['location'] }}">
+              {{ v['name'] }} ({{ v['capacity'] }} seats)
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Max Participants</label>
+          <input type="number" name="max_participants" id="maxPart" value="{{ data.get('max_participants', 100) }}" min="1">
+        </div>
+      </div>
+
+      <!-- VENUE AVAILABILITY CHECKER -->
+      <div id="venueChecker" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:14px;margin-bottom:16px;display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:.8rem;font-weight:700;color:#0369a1;">🏛️ Venue Availability</span>
+          <button type="button" onclick="checkVenueAvailability()" class="btn btn-secondary btn-sm">Check Now</button>
+        </div>
+        <div id="venueResult" style="font-size:.8rem;"></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date *</label>
+          <input type="date" name="date" id="dateInput" value="{{ data.get('date','') }}" required>
+        </div>
+        <div class="form-group">
+          <label>Start Time</label>
+          <input type="time" name="time" id="startTime" value="{{ data.get('time','') }}">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>End Time</label>
+          <input type="time" name="end_time" id="endTime" value="{{ data.get('end_time','') }}">
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end;">
+          <button type="button" onclick="checkVenueAvailability()" class="btn btn-secondary btn-block">
+            🔍 Check Venue Slot
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea name="description" id="descInput" placeholder="Describe the event... or use AI Generator above." rows="6">{{ data.get('description','') }}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Tags <span style="color:var(--muted);font-weight:400;">(comma separated, for AI recommendations)</span></label>
+        <input type="text" name="tags" id="tagsInput" value="{{ data.get('tags','')|tags_str }}" placeholder="e.g. coding, hackathon, AI, prizes">
+      </div>
+
+      <div class="form-actions">
+        <a href="/organizer" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+          {{ '💾 Save Changes' if event else '🚀 Submit for Approval' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- RIGHT: INFO PANEL -->
+  <div>
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-header"><h3>💡 Tips</h3></div>
+      <div class="card-body" style="font-size:.8rem;color:var(--muted);line-height:1.7;" id="tipsPanel">
+        <p>• Click <strong>✨ AI Generate</strong> to auto-fill description & tags.</p>
+        <p>• Use <strong>Check Venue Slot</strong> to verify availability before submitting.</p>
+        <p>• Set <strong>Registration Fee = 0</strong> for free events.</p>
+        <p>• Tags help the AI recommend your event to the right students.</p>
+        <p>• Events need Admin approval before going live.</p>
+      </div>
+    </div>
+
+    {% if event %}
+    <div class="card">
+      <div class="card-header"><h3>📊 Event Stats</h3></div>
+      <div class="card-body">
+        <div style="font-size:.85rem;color:var(--muted);">Status</div>
+        <span class="badge badge-{{ event['status'] }}" style="margin-bottom:12px;display:inline-block;">{{ event['status']|title }}</span>
+        <div style="font-size:.85rem;color:var(--muted);">Registration Fee</div>
+        <div style="font-family:'Fraunces',serif;font-size:1.4rem;font-weight:900;color:var(--primary);">
+          {{ '₹' + event['registration_fee']|int|string if event['registration_fee'] else 'Free' }}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+// Auto-show venue checker when venue is selected
+document.getElementById('venueSelect').addEventListener('change', function() {
+  document.getElementById('venueChecker').style.display = this.value ? 'block' : 'none';
+  document.getElementById('venueResult').innerHTML = '';
+});
+{% if data.get('venue_id') %}document.getElementById('venueChecker').style.display='block';{% endif %}
+
+// AI Template Generator
+async function generateTemplate() {
+  const title = document.getElementById('titleInput').value.trim();
+  const cat   = document.getElementById('categoryInput').value;
+  const fee   = document.getElementById('feeInput').value || 0;
+  if (!title) { alert('Please enter a title first!'); return; }
+
+  const btn = document.getElementById('genBtn');
+  const status = document.getElementById('genStatus');
+  btn.disabled = true; btn.textContent = '⏳ Generating...';
+  status.style.display = 'block';
+
+  try {
+    const r = await fetch('/organizer/generate-template', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({title, category: cat, fee})
+    });
+    const d = await r.json();
+    if (d.error) { alert(d.error); return; }
+
+    // Fill fields
+    document.getElementById('descInput').value = d.description;
+    document.getElementById('tagsInput').value = d.tags.join(', ');
+    if (!document.getElementById('maxPart').value || document.getElementById('maxPart').value == 100) {
+      document.getElementById('maxPart').value = d.suggested_max;
+    }
+    if (!document.getElementById('feeInput').value || document.getElementById('feeInput').value == 0) {
+      document.getElementById('feeInput').value = d.suggested_fee;
+    }
+
+    // Show tips
+    const tipsHtml = d.tips.map(t => `<p>• ${t}</p>`).join('');
+    document.getElementById('tipsPanel').innerHTML = '<strong style="color:var(--primary)">🤖 AI Tips for this event:</strong><br><br>' + tipsHtml;
+
+    document.getElementById('genResult').style.display = 'block';
+    document.getElementById('genTips').innerHTML = '<span style="color:var(--success)">✅ Template applied! Review and edit as needed.</span>';
+  } catch(e) {
+    alert('Template generation failed.');
+  } finally {
+    btn.disabled = false; btn.textContent = '✨ Regenerate';
+    status.style.display = 'none';
+  }
+}
+
+// Venue Availability Checker
+async function checkVenueAvailability() {
+  const venueId   = document.getElementById('venueSelect').value;
+  const date      = document.getElementById('dateInput').value;
+  const startTime = document.getElementById('startTime').value;
+  const endTime   = document.getElementById('endTime').value;
+  const resultDiv = document.getElementById('venueResult');
+
+  if (!venueId || !date || !startTime) {
+    resultDiv.innerHTML = '<span style="color:var(--warning)">⚠️ Please select venue, date and start time first.</span>';
+    return;
+  }
+
+  resultDiv.innerHTML = '🔍 Checking availability...';
+  try {
+    const r = await fetch('/organizer/venue-check', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({venue_id: venueId, date, start_time: startTime, end_time: endTime,
+                            exclude_id: {% if event %}{{ event['id'] }}{% else %}null{% endif %}})
+    });
+    const d = await r.json();
+
+    if (d.is_available) {
+      resultDiv.innerHTML = '<div style="color:#065f46;background:#d1fae5;padding:10px 12px;border-radius:8px;">✅ <strong>Venue is AVAILABLE</strong> for the selected time slot!</div>';
+    } else {
+      let html = `<div style="color:#991b1b;background:#fee2e2;padding:10px 12px;border-radius:8px;margin-bottom:10px;">
+        ❌ <strong>CONFLICT:</strong> "${d.conflict.title}" is booked (${d.conflict.time} – ${d.conflict.end_time || 'end'})
+      </div>`;
+
+      if (d.alt_times && d.alt_times.length) {
+        html += '<div style="font-weight:700;font-size:.8rem;margin:10px 0 6px;color:#0369a1;">⏰ Suggested free time slots on same day:</div>';
+        d.alt_times.forEach(slot => {
+          html += `<div style="display:inline-block;margin:3px;padding:5px 12px;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:20px;font-size:.78rem;cursor:pointer;font-weight:600;"
+            onclick="document.getElementById('startTime').value='${slot.start}';document.getElementById('endTime').value='${slot.end}'">
+            ${slot.start} – ${slot.end}
+          </div>`;
+        });
+      }
+
+      if (d.alt_venues && d.alt_venues.length) {
+        html += '<div style="font-weight:700;font-size:.8rem;margin:10px 0 6px;color:#5b21b6;">🏛️ Alternative available venues:</div>';
+        d.alt_venues.slice(0,3).forEach(v => {
+          html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#faf5ff;border:1px solid #ddd6fe;border-radius:10px;margin-bottom:6px;">
+            <div><div style="font-weight:600;font-size:.82rem;">${v.name}</div>
+            <div style="font-size:.74rem;color:var(--muted);">👥 ${v.capacity} seats · 📍 ${v.location || ''}</div></div>
+            <button type="button" onclick="selectVenue('${v.id}')" style="padding:5px 12px;background:var(--primary);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.77rem;font-weight:600;">Use This</button>
+          </div>`;
+        });
+      }
+      resultDiv.innerHTML = html;
+    }
+  } catch(e) {
+    resultDiv.innerHTML = '<span style="color:var(--accent)">Error checking availability.</span>';
+  }
+}
+
+function selectVenue(vid) {
+  document.getElementById('venueSelect').value = vid;
+  checkVenueAvailability();
+}
+</script>
+{% endblock %}

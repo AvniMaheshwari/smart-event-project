@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Register — AI CampusEvents{% endblock %}
+{% block auth_content %}
+<style>
+.auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#eef2ff,#fdf4ff,#fff7f0);padding:32px 16px;}
+.auth-card{background:#fff;border:1px solid var(--border);border-radius:24px;padding:36px;
+  width:100%;max-width:540px;box-shadow:0 8px 40px rgba(79,70,229,.12);}
+.auth-title{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:900;margin-bottom:4px;}
+.auth-sub{color:var(--muted);font-size:.85rem;margin-bottom:24px;}
+.role-toggle{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;}
+.role-option{position:relative;}
+.role-option input[type=radio]{display:none;}
+.role-option label{display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid var(--border);
+  border-radius:14px;cursor:pointer;transition:all .2s;background:#fff;}
+.role-option label:hover{border-color:var(--primary);background:var(--primary-light);}
+.role-option input:checked + label{border-color:var(--primary);background:var(--primary-light);}
+.role-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+.role-name{font-weight:700;font-size:.88rem;color:var(--text);}
+.role-desc{font-size:.72rem;color:var(--muted);}
+.interest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+.interest-chip{padding:8px 10px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;
+  text-align:center;font-size:.78rem;font-weight:600;color:var(--muted);transition:all .2s;user-select:none;}
+.interest-chip input{display:none;}
+.interest-chip:has(input:checked){background:var(--primary-light);border-color:var(--primary);color:var(--primary);}
+.auth-footer{text-align:center;margin-top:16px;font-size:.83rem;color:var(--muted);}
+.auth-footer a{color:var(--primary);font-weight:600;}
+.org-note{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:12px 14px;
+  font-size:.8rem;color:#065f46;display:none;margin-bottom:16px;}
+</style>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <h2 class="auth-title">Create Account</h2>
+    <p class="auth-sub">Choose your role and fill in your details below.</p>
+
+    <form method="POST" id="registerForm">
+
+      <div style="margin-bottom:6px;font-size:.79rem;font-weight:600;color:var(--text2);">I am registering as *</div>
+      <div class="role-toggle">
+        <div class="role-option">
+          <input type="radio" name="role" id="role_student" value="student" checked onchange="switchRole('student')">
+          <label for="role_student">
+            <div class="role-icon" style="background:#ede9fe;">🎓</div>
+            <div><div class="role-name">Student</div><div class="role-desc">Browse & register for events</div></div>
+          </label>
+        </div>
+        <div class="role-option">
+          <input type="radio" name="role" id="role_organizer" value="organizer" onchange="switchRole('organizer')">
+          <label for="role_organizer">
+            <div class="role-icon" style="background:#d1fae5;">📋</div>
+            <div><div class="role-name">Organizer</div><div class="role-desc">Create & manage events</div></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="org-note" id="orgNote">
+        ✅ As an organizer you can create events, manage participants, and track attendance. Your events will require Admin approval before going live.
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" name="name" placeholder="Your full name" required>
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" name="email" placeholder="you@college.edu" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Password *</label>
+        <input type="password" name="password" placeholder="Min 6 characters" required minlength="6">
+      </div>
+
+      <div class="form-group">
+        <label>Department / Faculty</label>
+        <input type="text" name="department" placeholder="e.g. Computer Science, Cultural Arts">
+      </div>
+
+      <!-- STUDENT ONLY -->
+      <div id="studentFields">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Year</label>
+            <select name="year">
+              <option value="">Select year</option>
+              <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Registration Number</label>
+            <input type="text" name="reg_no" placeholder="e.g. CS2023001">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Your Interests <span style="color:var(--muted);font-weight:400;">(AI uses these to recommend events)</span></label>
+          <div class="interest-grid">
+            {% for item in ['Tech','Cultural','Sports','Workshop','Music','AI','Coding','Dance','Art','Photography','Cricket','Hackathon'] %}
+            <label class="interest-chip"><input type="checkbox" name="interests" value="{{ item }}"> {{ item }}</label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- ORGANIZER ONLY -->
+      <div id="organizerFields" style="display:none;">
+        <div class="form-group">
+          <label>Club / Committee Name</label>
+          <input type="text" name="reg_no" placeholder="e.g. Tech Club, Cultural Committee, Sports Council">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" style="padding:12px;margin-top:8px;" id="submitBtn">
+        Create Student Account →
+      </button>
+    </form>
+
+    <div class="auth-footer">Already have an account? <a href="/login">Sign in</a></div>
+  </div>
+</div>
+
+<script>
+function switchRole(role) {
+  const sf  = document.getElementById('studentFields');
+  const of  = document.getElementById('organizerFields');
+  const note= document.getElementById('orgNote');
+  const btn = document.getElementById('submitBtn');
+  if (role === 'organizer') {
+    sf.style.display = 'none'; of.style.display = '';
+    note.style.display = 'block';
+    btn.textContent = 'Create Organizer Account →';
+  } else {
+    sf.style.display = ''; of.style.display = 'none';
+    note.style.display = 'none';
+    btn.textContent = 'Create Student Account →';
+  }
+}
+</script>
+{% endblock %}
